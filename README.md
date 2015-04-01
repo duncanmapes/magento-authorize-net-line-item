@@ -1,0 +1,6 @@
+# magento-authorize-net-line-item
+Extension of the core authorize.net payment plugin in Magento to allow for line item to pass to authorize.net
+
+When I realized the out of the box magento Authorize.net plugin did not support line items I was shocked.  I could not believe such a fully featured shopping cart did not have this basic functionality.  When I dug into the problem more, I realized that is probably due to choices they made about leveraging Zend for their HTTP requests.  The normal process of setting up an array of parameters and passing them into the Zend method to package them up and send the request would not work for line items.  The reason for this is that authorize.net wants multiple instances of "x_line_item" in the post, and you just can't have the same key multiple times in a single dimensional array.  This was a bit of a maddening process, trying to find a way to support this basic functionality without having to resort to a whole new payment module.  
+
+I hope you find it helpful, I would have done a pull request to have it changed in the core, but it was not clear the proper place to submit it.  If someone can let me know, and you think it would be useful, I will be happy to do so.
