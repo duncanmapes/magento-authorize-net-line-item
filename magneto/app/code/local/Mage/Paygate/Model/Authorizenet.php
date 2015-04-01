@@ -1230,6 +1230,30 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
             $request->setXPoNum($payment->getPoNumber())
                 ->setXTax($order->getBaseTaxAmount())
                 ->setXFreight($order->getBaseShippingAmount());
+
+            
+            //Adding Line Items to Request
+            $items = $order->getAllVisibleItems();
+
+            if(!empty($items)){
+                $lineItems = array();
+
+                foreach ($items as $item) {
+                    $lineItems[] = sprintf(
+                        '%s<|>%s<|>%s<|>%s<|>%s<|>%s',
+                        $item->getSku(),
+                        $item->getName(),
+                        $item->getDescription(),
+                        $item->getQtyToInvoice(),
+                        $item->getOriginalPrice(),
+                        $item->getTax() ? 'TRUE' : 'FALSE'
+                    );
+                  
+                }
+                $request->setXLineItem($lineItems);  
+            }
+            //end adding line items
+          
         }
 
         if($payment->getCcNumber()){
@@ -1267,7 +1291,29 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
         }
         $request->setXDelimChar(self::RESPONSE_DELIM_CHAR);
 
-        $client->setParameterPost($request->getData());
+        //adding line item functionality, need to switch to raw transmision
+        $post_string = "";
+        foreach($request->getData() as $key => $value ){
+            
+            if($key !== 'x_line_item'){
+               $post_string .= "$key=" . urlencode($value) . "&"; 
+            }
+            else{
+                foreach( $value as $item ){
+                    $post_string .= "x_line_item=" . urlencode($item)."&";
+                }
+            }
+            
+        }
+        $post_string = rtrim($post_string,"& ");
+
+        //disabling the default behavior of using the array to set parameters
+        //$client->setParameterPost($request->getData());
+
+        $client->setRawData($post_string,"application/x-www-form-urlencoded");
+        //end adding line item functionality
+
+
         $client->setMethod(Zend_Http_Client::POST);
 
         try {
