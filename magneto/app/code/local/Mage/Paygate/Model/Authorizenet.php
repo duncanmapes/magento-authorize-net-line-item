@@ -1231,7 +1231,7 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
                 ->setXTax($order->getBaseTaxAmount())
                 ->setXFreight($order->getBaseShippingAmount());
 
-            
+
             //Adding Line Items to Request
             $items = $order->getAllVisibleItems();
 
@@ -1242,18 +1242,18 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
                     $lineItems[] = sprintf(
                         '%s<|>%s<|>%s<|>%s<|>%s<|>%s',
                         $item->getSku(),
-                        $item->getName(),
-                        $item->getDescription(),
-                        $item->getQtyToInvoice(),
-                        $item->getOriginalPrice(),
+                        $item->getSku(),
+                        substr($item->getName(), 0, 255),
+                        $item->getQtyOrdered(),
+                        $item->getPrice(),
                         $item->getTax() ? 'TRUE' : 'FALSE'
                     );
-                  
+
                 }
-                $request->setXLineItem($lineItems);  
+                $request->setXLineItem($lineItems);
             }
             //end adding line items
-          
+
         }
 
         if($payment->getCcNumber()){
@@ -1294,16 +1294,16 @@ class Mage_Paygate_Model_Authorizenet extends Mage_Payment_Model_Method_Cc
         //adding line item functionality, need to switch to raw transmision
         $post_string = "";
         foreach($request->getData() as $key => $value ){
-            
+
             if($key !== 'x_line_item'){
-               $post_string .= "$key=" . urlencode($value) . "&"; 
+               $post_string .= "$key=" . urlencode($value) . "&";
             }
             else{
                 foreach( $value as $item ){
                     $post_string .= "x_line_item=" . urlencode($item)."&";
                 }
             }
-            
+
         }
         $post_string = rtrim($post_string,"& ");
 
